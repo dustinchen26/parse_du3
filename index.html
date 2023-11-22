@@ -1,0 +1,224 @@
+<!-- 
+  Copyright © [2023] [Dustin_Chen]. All rights reserved.
+  Author: Dustin_Chen
+  Email:  Dustin_Chen@compal.com or chuhpsdustin@gmail.com
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parse the multi-UE du_stats_XXX.txt DL/UL Each_Tput, BLER, MCS</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.2;
+            font-size: 15px;
+        }
+
+        #output {
+            white-space: pre;
+            font-size: 13px;
+        }
+
+        /* 將連結文字設為藍色 */
+        a {
+            color: blue;
+        }
+
+        /* 將UE-ID文字設為綠色 */
+        #output span.ue-id {
+            color: green;
+        }
+
+        #output span.dl-tpt {
+            color: blue;
+        }
+
+        #output span.dl-bler {
+            color: blue;
+        }
+
+        #output span.ul-tpt {
+            color: red;
+        }
+
+        #output span.ul-bler {
+            color: red;
+        }
+    </style>
+    <script>
+        function parseContent() {
+            // 獲取輸入的文本區域內容
+            var inputText = document.getElementById('inputTextArea').value;
+
+            // 將文本按行分割
+            var lines = inputText.split('\n');
+
+            // 存儲解析結果的字符串
+            var output = "";
+
+            // 遍歷每一行
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+
+                // 檢查是否包含 "UE-ID     BEAM-ID"
+                if (line.includes("UE-ID     BEAM-ID")) {
+                    i++; // 跳過下一行
+                    output += parseUEData(lines, i);
+                }
+
+                // 檢查是否包含 "UE-ID   CELL-ID   ON-SUL"
+                if (line.includes("UE-ID   CELL-ID   ON-SUL")) {
+                    i++; // 跳過下一行
+                    output += parseCellData(lines, i) + "\n";
+                }
+            }
+
+            // 將結果添加到HTML中
+            document.getElementById('output').innerHTML = output;
+        }
+
+        function parseUEData(lines, index) {
+            var output = "";
+            var values = lines[index].trim().split(/\s+/);
+            var ueId = values[0].padEnd(8);
+            var dlTpt = values[5].padEnd(8);
+            var ulTpt = values[7].padEnd(8);
+
+            // 返回結果字符串
+            output += "<span class='ue-id'>UE-ID=" + ueId + "</span><span class='dl-tpt'>DL-TPT=" + dlTpt +
+                "</span><span class='ul-tpt'>UL-TPT=" + ulTpt + "</span>\n";
+
+            // 繼續解析下一行數字
+            index++;
+            while (index < lines.length && /^\d/.test(lines[index].trim())) {
+                values = lines[index].trim().split(/\s+/);
+                ueId = values[0].padEnd(8);
+                dlTpt = values[5].padEnd(8);
+                ulTpt = values[7].padEnd(8);
+                output += "<span class='ue-id'>UE-ID=" + ueId + "</span><span class='dl-tpt'>DL-TPT=" + dlTpt +
+                    "</span><span class='ul-tpt'>UL-TPT=" + ulTpt + "</span>\n";
+                index++;
+            }
+
+            return output;
+        }
+
+        function parseCellData(lines, index) {
+            var output = "";
+            var values = lines[index].trim().split(/\s+/);
+            var ueId = values[0].padEnd(8);
+            var dlTx = values[3].padEnd(8);
+            var dlRetx = values[4].padEnd(8);
+            // calculate dl bler
+            try {
+                var dl_bler = parseFloat(dlRetx) / (parseFloat(dlTx) + parseFloat(dlRetx));
+                dl_bler = isNaN(dl_bler) ? "NaN" : dl_bler.toFixed(4);
+                dl_bler = dl_bler.toString().padEnd(8);
+            } catch (error) {
+                var dl_bler = "NaN".padEnd(8);
+            }
+            var dlMcs = values[13].padEnd(8);
+            var ulCrcSucc = values[18].padEnd(8);
+            var ulCrcFail = values[19].padEnd(8);
+            // calculate ul bler
+            try {
+                var ul_bler = parseFloat(ulCrcFail) / (parseFloat(ulCrcSucc) + parseFloat(ulCrcFail));
+                ul_bler = isNaN(ul_bler) ? "NaN" : ul_bler.toFixed(4);
+                ul_bler = ul_bler.toString().padEnd(8);
+            } catch (error) {
+                var ul_bler = "NaN".padEnd(8);
+            }
+            var ulMcs = values[22].padEnd(8);
+
+            // 返回結果字符串
+            output += "<span class='ue-id'>UE-ID=" + ueId + "</span>DL-TX=" + dlTx + "DL-RETX=" + dlRetx +
+                "<span class='dl-bler'>DL-BLER=" + dl_bler + "</span>DL-MCS=" +
+                dlMcs +
+                "UL-CRC-SUCC=" + ulCrcSucc + "UL-CRC-FAIL=" + ulCrcFail + "<span class='ul-bler'>UL-BLER=" + ul_bler +
+                "</span>UL-MCS=" + ulMcs +
+                "\n";
+
+            // 繼續解析下一行數字
+            index++;
+            while (index < lines.length && /^\d/.test(lines[index].trim())) {
+                values = lines[index].trim().split(/\s+/);
+                ueId = values[0].padEnd(8);
+                dlTx = values[3].padEnd(8);
+                dlRetx = values[4].padEnd(8);
+                // calculate dl bler
+                try {
+                    var dl_bler = parseFloat(dlRetx) / (parseFloat(dlTx) + parseFloat(dlRetx));
+                    dl_bler = isNaN(dl_bler) ? "NaN" : dl_bler.toFixed(4);
+                    dl_bler = dl_bler.toString().padEnd(8);
+                } catch (error) {
+                    var dl_bler = "NaN".padEnd(8);
+                }
+                dlMcs = values[13].padEnd(8);
+                ulCrcSucc = values[18].padEnd(8);
+                ulCrcFail = values[19].padEnd(8);
+                // calculate ul bler
+                try {
+                    var ul_bler = parseFloat(ulCrcFail) / (parseFloat(ulCrcSucc) + parseFloat(ulCrcFail));
+                    ul_bler = isNaN(ul_bler) ? "NaN" : ul_bler.toFixed(4);
+                    ul_bler = ul_bler.toString().padEnd(8);
+                } catch (error) {
+                    var ul_bler = "NaN".padEnd(8);
+                }
+
+                ulMcs = values[22].padEnd(8);
+                output += "<span class='ue-id'>UE-ID=" + ueId + "</span>DL-TX=" + dlTx + "DL-RETX=" + dlRetx +
+                    "<span class='dl-bler'>DL-BLER=" + dl_bler + "</span>DL-MCS=" +
+                    dlMcs +
+                    "UL-CRC-SUCC=" + ulCrcSucc + "UL-CRC-FAIL=" + ulCrcFail + "<span class='ul-bler'>UL-BLER=" +
+                    ul_bler + "</span>UL-MCS=" + ulMcs +
+                    "\n";
+                index++;
+            }
+
+            return output;
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Parse the multi-UE du_stats_XXX.txt DL/UL Each_Tput, BLER, MCS</h1>
+    <p style="margin: 0;">Author: Dustin_Chen, email: <a href="mailto:Dustin_Chen@compal.com"
+            style="line-height: 1;">Dustin_Chen@compal.com</a> or <a href="mailto:chuhpsdustin@gmail.com"
+            style="line-height: 1;">chuhpsdustin@gmail.com</a></p>
+    <ul>
+        <li><strong>Reference</strong>
+            <ul>
+                <li>Parse “cu_stats_XXX.txt” => <a href="https://dustinchen26.github.io/parse_cu"
+                        target="_blank">https://dustinchen26.github.io/parse_cu</a></li>
+                <li>Parse “du_stats_XXX.txt” 1_UE => <a href="https://dustinchen26.github.io/parse_du"
+                        target="_blank">https://dustinchen26.github.io/parse_du</a></li>
+                <li>Parse “du_stats_XXX.txt” multi-UE (Total_Tput) => <a href="https://dustinchen26.github.io/parse_du2"
+                        target="_blank">https://dustinchen26.github.io/parse_du2</a></li>
+                <li>Parse “du_stats_XXX.txt” multi-UE (Each_Tput) => <a href="https://dustinchen26.github.io/parse_du3"
+                        target="_blank">https://dustinchen26.github.io/parse_du3</a></li>
+
+            </ul>
+        </li>
+    </ul>
+    <ul>
+        <li><strong>Please paste the whole du_stats_XXX.txt content below, then it will parse the DL/UL Tput, BLER,
+                MCS.</strong>
+            <ul>
+                <li>formula 1: DL-BLER = DL-RETX / (DL-RETX + DL-TX)</li>
+                <li>formula 2: UL-BLER = UL-CRC-FAIL / (UL-CRC-SUCC + UL-CRC-FAIL)</li>
+            </ul>
+            <textarea id="inputTextArea" rows="10" cols="80"></textarea>
+            <br>
+            <button onclick="parseContent()">Parse</button>
+            <pre id="output"></pre>
+        </li>
+    </ul>
+
+
+</body>
+
+</html>

@@ -1,6 +1,6 @@
-# Parse the multi-UE du_stats_XXX.txt DL/UL Each_Tput, BLER, MCS
+# Parse du_stats_XXX.txt of each UE DL/UL Tput, BLER, and MCS
 
-Parse “du_stats_XXX.txt” multi-UE => https://dustinchen26.github.io/parse_du3
+online tool => https://dustinchen26.github.io/parse_du3
 
 ## Example
 ```

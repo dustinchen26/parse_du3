@@ -53,11 +53,11 @@
         function parseContent() {
             // 獲取輸入的文本區域內容
             var inputText = document.getElementById('inputTextArea').value;
-console.log("Input Text:", inputText);
+            console.log("Input Text:", inputText);
 
             // 將文本按行分割
             var lines = inputText.split('\n');
-console.log("Number of Lines:", lines.length);
+            console.log("Number of Lines:", lines.length);
 
             // 存儲解析結果的字符串
             var output = "";
@@ -65,18 +65,24 @@ console.log("Number of Lines:", lines.length);
             // 遍歷每一行
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
-console.log("Processing Line " + (i + 1) + ":", line);
+                console.log("Processing Line " + (i + 1) + ":", line);
 
-                // 檢查是否包含 "UE-ID     BEAM-ID"
+                // 檢查是否包含 "UE-ID BEAM-ID"
                 if (line.includes("UE-ID     BEAM-ID")) {
-                    i++; // 跳過下一行
-                    output += parseUEData(lines, i);
+                    // Check if the next line has numbers
+                    if (i + 1 < lines.length && /^\d/.test(lines[i + 1].trim())) {
+                        i++; // Skip the next line
+                        output += parseUEData(lines, i);
+                    }
                 }
 
-                // 檢查是否包含 "UE-ID   CELL-ID   ON-SUL"
+                // 檢查是否包含 "UE-ID CELL-ID ON-SUL"
                 if (line.includes("UE-ID   CELL-ID   ON-SUL")) {
-                    i++; // 跳過下一行
-                    output += parseCellData(lines, i) + "\n";
+                    // Check if the next line has numbers
+                    if (i + 1 < lines.length && /^\d/.test(lines[i + 1].trim())) {
+                        i++; // Skip the next line
+                        output += parseCellData(lines, i) + "\n";
+                    }
                 }
             }
 
@@ -86,8 +92,8 @@ console.log("Processing Line " + (i + 1) + ":", line);
 
         function parseUEData(lines, index) {
             var output = "";
-console.log("Parsing UE Data at Line " + (index + 1) + ": ", lines[index]);
-			
+            console.log("Parsing UE Data at Line " + (index + 1) + ": ", lines[index]);
+
             var values = lines[index].trim().split(/\s+/);
             var ueId = values[0].padEnd(8);
             var dlTpt = values[5].padEnd(8);
@@ -95,7 +101,7 @@ console.log("Parsing UE Data at Line " + (index + 1) + ": ", lines[index]);
 
             // 返回結果字符串
             output += "<span class='ue-id'>UE-ID=" + ueId + "</span><span class='dl-tpt'>DL-TPT=" + dlTpt +
-                "</span><span class='ul-tpt'>UL-TPT=" + ulTpt + "</span>\n";
+                "</span>  <span class='ul-tpt'>UL-TPT=" + ulTpt + "</span>\n";
 
             // 繼續解析下一行數字
             index++;
@@ -105,7 +111,7 @@ console.log("Parsing UE Data at Line " + (index + 1) + ": ", lines[index]);
                 dlTpt = values[5].padEnd(8);
                 ulTpt = values[7].padEnd(8);
                 output += "<span class='ue-id'>UE-ID=" + ueId + "</span><span class='dl-tpt'>DL-TPT=" + dlTpt +
-                    "</span><span class='ul-tpt'>UL-TPT=" + ulTpt + "</span>\n";
+                    "</span>  <span class='ul-tpt'>UL-TPT=" + ulTpt + "</span>\n";
                 index++;
             }
 
@@ -114,7 +120,7 @@ console.log("Parsing UE Data at Line " + (index + 1) + ": ", lines[index]);
 
         function parseCellData(lines, index) {
             var output = "";
-console.log("Parsing Cell Data at Line " + (index + 1) + ": ", lines[index]);			
+            console.log("Parsing Cell Data at Line " + (index + 1) + ": ", lines[index]);
             var values = lines[index].trim().split(/\s+/);
             var ueId = values[0].padEnd(8);
             var dlTx = values[3].padEnd(8);

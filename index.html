@@ -53,9 +53,11 @@
         function parseContent() {
             // 獲取輸入的文本區域內容
             var inputText = document.getElementById('inputTextArea').value;
+console.log("Input Text:", inputText);
 
             // 將文本按行分割
             var lines = inputText.split('\n');
+console.log("Number of Lines:", lines.length);
 
             // 存儲解析結果的字符串
             var output = "";
@@ -63,6 +65,7 @@
             // 遍歷每一行
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
+console.log("Processing Line " + (i + 1) + ":", line);
 
                 // 檢查是否包含 "UE-ID     BEAM-ID"
                 if (line.includes("UE-ID     BEAM-ID")) {
@@ -83,6 +86,8 @@
 
         function parseUEData(lines, index) {
             var output = "";
+console.log("Parsing UE Data at Line " + (index + 1) + ": ", lines[index]);
+			
             var values = lines[index].trim().split(/\s+/);
             var ueId = values[0].padEnd(8);
             var dlTpt = values[5].padEnd(8);
@@ -109,6 +114,7 @@
 
         function parseCellData(lines, index) {
             var output = "";
+console.log("Parsing Cell Data at Line " + (index + 1) + ": ", lines[index]);			
             var values = lines[index].trim().split(/\s+/);
             var ueId = values[0].padEnd(8);
             var dlTx = values[3].padEnd(8);
